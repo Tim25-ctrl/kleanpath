@@ -61,10 +61,32 @@
     });
   }
 
-  function download(blob, name) {
+  // Ouvre la fenêtre « Enregistrer sous » (Chrome, Edge, Opera) pour choisir le dossier et le nom.
+  // Firefox et Safari n'ont pas cette fenêtre : le fichier part dans Téléchargements, comme avant.
+  const SAVE_TYPES = {
+    svg: { description: 'Image SVG', accept: { 'image/svg+xml': ['.svg'] } },
+    dxf: { description: 'Dessin DXF', accept: { 'application/dxf': ['.dxf'] } },
+    png: { description: 'Image PNG', accept: { 'image/png': ['.png'] } },
+    zip: { description: 'Archive ZIP', accept: { 'application/zip': ['.zip'] } }
+  };
+  async function download(blob, name) {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    if (window.showSaveFilePicker && window.self === window.top) {
+      try {
+        const handle = await window.showSaveFilePicker({ suggestedName: name, types: SAVE_TYPES[ext] ? [SAVE_TYPES[ext]] : undefined, id: 'kleanpath-export' });
+        const w = await handle.createWritable();
+        await w.write(blob); await w.close();
+        toast('Enregistré : ' + handle.name);
+        return true;
+      } catch (e) {
+        if (e && e.name === 'AbortError') return false;   // l'utilisateur a fermé la fenêtre : on ne fait rien
+        // autre refus (ex. clic trop ancien) : téléchargement classique
+      }
+    }
     const a = h('a', { href: URL.createObjectURL(blob), download: name });
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    return true;
   }
 
   function showView(v) {
