@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KleanPath — mentions légales, conditions d'utilisation, confidentialité</title>
+
+  <script>
+  /* =====================================================================
+     À REMPLIR : vos informations, entre les guillemets.
+     Laissez "" tant que vous ne les avez pas : elles restent surlignées
+     en jaune sur la page, pour ne rien oublier avant la mise en ligne.
+     ===================================================================== */
+  window.INFOS = {
+    nom: "Timothé Couzinet",             // Votre prénom et nom (ou le nom de votre entreprise)
+    statut: "",          // ex. "Entrepreneur individuel (micro-entreprise)" — ou laisser vide pour l'instant
+    siret: "",           // vide = rien n'est affiché (site gratuit d'un particulier). À remplir dès la création de la micro-entreprise (formalites.entreprises.gouv.fr)
+    adresse: "49 route du Cluzeau 16200 Réparsac",         // Votre adresse postale (ou celle d'une domiciliation)
+    email: "contact.kleanpath@proton.me",           // Une adresse e-mail de contact
+    hebergeur: "github", // "vercel" ou "github" selon l'endroit où le site est publié
+    miseAJour: "12 novembre 2026",
+    cdnExterne: true     // true tant que le site charge Tailwind depuis cdn.tailwindcss.com ; false après le build local
+  };
+  </script>
+
+  <script>
+    (function () {
+      var t = null; try { t = localStorage.getItem('lc_theme'); } catch (e) {}
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f97316'/%3E%3C/svg%3E">
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+  <style>
+    .todo { background: #fef3c7; color: #92400e; padding: 0 .25rem; border-radius: .25rem; font-weight: 600; }
+    .dark .todo { background: rgba(245,158,11,.2); color: #fcd34d; }
+    main h2 { font-size: 1.35rem; font-weight: 700; margin-top: 2.5rem; scroll-margin-top: 1.5rem; }
+    main h3 { font-weight: 600; margin-top: 1.25rem; }
+    main p, main li { margin-top: .5rem; line-height: 1.65; }
+    main ul { list-style: disc; padding-left: 1.25rem; }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 dark:bg-stone-950 dark:text-stone-200 antialiased">
+<main class="max-w-3xl mx-auto px-4 py-10 text-sm">
+  <a href="index.html" class="text-orange-600 underline">← Retour à KleanPath</a>
+  <h1 class="text-3xl font-bold mt-6">Informations légales</h1>
+  <p id="todoBanner" class="hidden mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200">
+    Il reste des informations à compléter (surlignées en jaune) : remplissez le bloc <code>INFOS</code> en haut du fichier <code>legal.html</code>.
+  </p>
+  <nav class="mt-4 flex flex-wrap gap-4"><a href="#mentions" class="underline">Mentions légales</a><a href="#cgu" class="underline">Conditions d'utilisation</a><a href="#confidentialite" class="underline">Confidentialité</a></nav>
+
+  <!-- ===================== Mentions légales ===================== -->
+  <h2 id="mentions">Mentions légales</h2>
+  <h3>Éditeur du site</h3>
+  <p>
+    <span data-info="nom">votre nom</span><br>
+    <span data-info="statut" data-optional>statut (ex. micro-entreprise)</span><br data-for="statut">
+    <span data-prefix="SIRET : " data-info="siret" data-optional>numéro SIRET</span><br data-for="siret">
+    Adresse : <span data-info="adresse">adresse postale</span><br>
+    Contact : <span data-info="email" data-mail>adresse e-mail</span>
+  </p>
+  <h3>Directeur de la publication</h3>
+  <p><span data-info="nom">votre nom</span></p>
+  <h3>Hébergeur</h3>
+  <p id="hebergeur"></p>
+  <h3>Propriété intellectuelle</h3>
+  <p>Le site KleanPath, son code et ses textes sont protégés par le droit d'auteur. Les fichiers que vous analysez restent les vôtres : ils sont traités dans votre navigateur et ne sont jamais transmis à l'éditeur.</p>
+
+  <!-- ===================== Conditions d'utilisation ===================== -->
+  <h2 id="cgu">Conditions générales d'utilisation</h2>
+  <p class="text-stone-500">Dernière mise à jour : <span data-info="miseAJour">date</span></p>
+  <h3>1. Objet</h3>
+  <p>KleanPath est un outil en ligne qui aide à repérer et corriger les erreurs courantes des fichiers de découpe et de gravure laser (SVG, DXF, images). En utilisant le site, vous acceptez les présentes conditions.</p>
+  <h3>2. Accès gratuit</h3>
+  <p>L'outil est actuellement gratuit, sans inscription et sans limite d'utilisation. L'éditeur peut faire évoluer le service, ajouter des fonctions ou proposer plus tard une offre payante ; les utilisateurs en seront informés sur le site.</p>
+  <h3>3. Vos fichiers</h3>
+  <p>Les fichiers sont analysés, corrigés et exportés directement dans votre navigateur. Ils ne sont ni envoyés, ni stockés, ni consultés par l'éditeur. Vous restez seul propriétaire et responsable de vos fichiers et de leur contenu.</p>
+  <h3>4. Responsabilité</h3>
+  <p>KleanPath vous aide, mais ne garantit pas l'absence de toute erreur. <strong>Vérifiez toujours le fichier dans le logiciel de votre machine avant de lancer une découpe ou une gravure</strong> (dimensions, calques, puissance, vitesse). L'éditeur ne peut être tenu responsable d'une perte de matériau, de temps machine, d'un dommage à la machine ou d'un résultat non conforme. Le service est fourni « en l'état », sans garantie de disponibilité.</p>
+  <h3>5. Utilisation correcte</h3>
+  <p>Vous vous engagez à ne pas perturber le fonctionnement du site ni tenter d'en extraire le code à des fins commerciales sans autorisation.</p>
+  <h3>6. Modification des conditions</h3>
+  <p>Ces conditions peuvent être modifiées ; la version en vigueur est celle publiée sur cette page, avec sa date de mise à jour.</p>
+  <h3>7. Droit applicable</h3>
+  <p>Les présentes conditions sont soumises au droit français. Pour toute question, écrivez à <span data-info="email" data-mail>adresse e-mail</span>.</p>
+
+  <!-- ===================== Confidentialité ===================== -->
+  <h2 id="confidentialite">Politique de confidentialité</h2>
+  <p class="text-stone-500">Dernière mise à jour : <span data-info="miseAJour">date</span></p>
+  <h3>Responsable</h3>
+  <p><span data-info="nom">votre nom</span> — contact : <span data-info="email" data-mail>adresse e-mail</span>.</p>
+  <h3>Vos fichiers ne quittent jamais votre ordinateur</h3>
+  <p>L'analyse, les corrections, la vectorisation des textes et les exports sont calculés dans votre navigateur. Aucun fichier n'est envoyé à un serveur. KleanPath ne demande ni compte, ni nom, ni adresse e-mail.</p>
+  <h3>Ce qui est enregistré sur votre appareil</h3>
+  <p>Vos réglages (machine, taille du plateau, kerf) et le thème clair ou sombre sont enregistrés dans le stockage local de votre navigateur (localStorage), uniquement pour vous les resservir à la prochaine visite. Ces données restent sur votre appareil, ne sont pas transmises et n'ont pas besoin de consentement car elles sont nécessaires au service que vous utilisez. Vous pouvez les effacer à tout moment en supprimant les données du site dans votre navigateur.</p>
+  <h3>Journaux de l'hébergeur</h3>
+  <p>Comme pour tout site web, l'hébergeur (<span id="hebergeurCourt"></span>) enregistre techniquement les connexions : adresse IP, date et heure, page demandée, type de navigateur. Ces journaux servent à la sécurité et au bon fonctionnement du service ; ils sont conservés par l'hébergeur selon sa propre politique de confidentialité. L'hébergeur étant situé aux États-Unis, ce transfert est encadré par les garanties prévues par le RGPD (cadre de protection des données UE–États-Unis ou clauses contractuelles types).</p>
+  <div id="cdnBlock">
+    <h3>Ressource externe</h3>
+    <p>La mise en forme du site est chargée depuis <code>cdn.tailwindcss.com</code>. Ce service reçoit donc votre adresse IP lors du chargement de la page, comme tout serveur web. Aucun de vos fichiers ne lui est transmis.</p>
+  </div>
+  <h3>Pas de cookies de suivi</h3>
+  <p>KleanPath n'utilise ni cookies publicitaires, ni outil de statistiques, ni traceur. Aucune bannière de consentement n'est donc nécessaire. Si cela change, cette page sera mise à jour et votre accord sera demandé.</p>
+  <h3>Vos droits</h3>
+  <p>Vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition sur les données vous concernant. Comme KleanPath ne collecte pas de données personnelles en dehors des journaux de l'hébergeur, écrivez à <span data-info="email" data-mail>adresse e-mail</span> pour toute question. Vous pouvez aussi adresser une réclamation à la CNIL (cnil.fr).</p>
+
+  <!--
+    Modèle de CGV pour une future offre Pro (licence payante via Lemon Squeezy) : à remettre sur la page
+    seulement le jour où une vente est proposée.
+    1. Objet : vente de la licence KleanPath Pro, accès à vie, paiement unique.
+    2. Revendeur : Lemon Squeezy (Merchant of Record) encaisse, facture et reverse la TVA. Prix TTC affiché.
+    3. Livraison : clé envoyée par e-mail immédiatement après paiement.
+    4. Rétractation : contenu numérique fourni immédiatement ; renonciation expresse (art. L221-28 13° du Code de la consommation).
+    5. Limites : outil d'aide, vérification avant découpe indispensable.
+    6. « À vie » : pour la durée d'exploitation du service.
+    7. Litiges : droit français, médiateur de la consommation (nom et site à indiquer), plateforme européenne RLL.
+  -->
+</main>
+
+<script>
+  // Remplit la page à partir du bloc INFOS ; ce qui manque reste surligné en jaune.
+  (function () {
+    var I = window.INFOS || {}, missing = 0;
+    var HOSTS = {
+      // adresses publiées par les hébergeurs (à revérifier sur leur site avant la mise en ligne)
+      vercel: { court: 'Vercel', long: 'Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — vercel.com' },
+      github: { court: 'GitHub', long: 'GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis — pages.github.com' }
+    };
+    document.querySelectorAll('[data-info]').forEach(function (el) {
+      var key = el.getAttribute('data-info'), val = (I[key] || '').trim(), optional = el.hasAttribute('data-optional');
+      if (val) {
+        if (el.hasAttribute('data-mail')) { var a = document.createElement('a'); a.href = 'mailto:' + val; a.textContent = val; a.className = 'underline'; el.replaceChildren(a); }
+        else el.textContent = (el.getAttribute('data-prefix') || '') + val;
+      } else if (optional) {
+        // statut ou SIRET pas encore connus (pas d'entreprise pour l'instant) : on n'affiche rien
+        el.remove(); var br = document.querySelector('br[data-for="' + key + '"]'); if (br) br.remove();
+      } else {
+        el.textContent = '[' + el.textContent + ' à compléter]';
+        el.classList.add('todo'); missing++;
+      }
+    });
+    var h = HOSTS[I.hebergeur] || null;
+    var hp = document.getElementById('hebergeur'), hc = document.getElementById('hebergeurCourt');
+    if (h) { hp.textContent = h.long; hc.textContent = h.court; }
+    else { hp.innerHTML = '<span class="todo">[hébergeur à compléter : "vercel" ou "github"]</span>'; hc.textContent = 'votre hébergeur'; missing++; }
+    if (I.cdnExterne === false) document.getElementById('cdnBlock').remove();
+    if (missing) document.getElementById('todoBanner').classList.remove('hidden');
+  })();
+</script>
+</body>
+</html>

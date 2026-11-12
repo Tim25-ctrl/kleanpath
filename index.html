@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KleanPath — vérifiez vos fichiers laser avant la découpe</title>
+  <meta name="description" content="Détecte et corrige les erreurs de vos fichiers de découpe et gravure laser : échelle, doublons, texte non vectorisé, couleurs. 100 % local.">
+  <script>
+    // Thème appliqué avant le rendu pour éviter le flash
+    (function () {
+      var t = null; try { t = localStorage.getItem('lc_theme'); } catch (e) {}
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    })();
+  </script>
+  <!-- Prototype : Tailwind via CDN. Mise en ligne : build Tailwind CLI (voir README). -->
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f97316'/%3E%3Cpath d='M12 4v5M12 15v5M4 12h5M15 12h5' stroke='white' stroke-width='2.2'/%3E%3Ccircle cx='12' cy='12' r='2.2' fill='white'/%3E%3C/svg%3E">
+</head>
+<body class="min-h-screen bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 antialiased">
+
+<header class="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
+    <button id="homeBtn" class="flex items-center gap-2 font-semibold tracking-tight" title="Accueil">
+      <span class="w-7 h-7 rounded-md bg-orange-500 text-white grid place-items-center">
+        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="2.5"/></svg>
+      </span>
+      KleanPath
+    </button>
+    <span class="hidden sm:inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+      <svg viewBox="0 0 24 24" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      100 % local
+    </span>
+    <div class="flex-1"></div>
+    <span id="proBadge" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">PRO</span>
+    <button id="proBtn" class="hidden text-sm px-3 py-1.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium">Passer en Pro</button>
+    <button id="settingsBtn" class="p-2 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800" title="Réglages machine" aria-label="Réglages machine">
+      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <button id="themeBtn" class="p-2 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800" title="Mode sombre / clair" aria-label="Mode sombre / clair">
+      <svg viewBox="0 0 24 24" class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg viewBox="0 0 24 24" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4">
+
+  <!-- ===== Accueil ===== -->
+  <section id="homeView" class="py-12 sm:py-20">
+    <div class="max-w-2xl mx-auto text-center">
+      <h1 class="text-3xl sm:text-4xl font-bold tracking-tight">Vérifiez votre fichier laser <span class="text-orange-500">avant</span> la découpe.</h1>
+      <p class="mt-4 text-stone-600 dark:text-stone-400">Échelle, doublons, tracés ouverts, texte non vectorisé, couleurs… un diagnostic en quelques secondes, sans inscription.
+        <strong class="text-stone-800 dark:text-stone-200">Vos fichiers ne quittent jamais votre ordinateur.</strong></p>
+    </div>
+
+    <label id="dropzone" for="fileInput" class="mt-10 max-w-2xl mx-auto flex flex-col items-center justify-center gap-3 border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-2xl p-10 sm:p-14 cursor-pointer bg-white dark:bg-stone-900 hover:border-orange-400 transition">
+      <svg viewBox="0 0 24 24" class="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>
+      <span class="text-lg font-medium">Déposez votre fichier ici</span>
+      <span class="text-sm text-stone-500 text-center">SVG ou DXF pour la découpe · PNG ou JPG pour la gravure</span>
+      <span class="text-xs text-stone-400">Gratuit et illimité · plusieurs fichiers d'un coup : traitement par lot</span>
+      <span class="mt-2 inline-block px-4 py-2 rounded-lg bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 text-sm font-medium">Parcourir…</span>
+      <input id="fileInput" type="file" multiple accept=".svg,.dxf,.png,.jpg,.jpeg,image/svg+xml,image/png,image/jpeg" class="sr-only">
+    </label>
+    <p id="homeError" class="hidden max-w-2xl mx-auto mt-4 text-sm text-red-700 bg-red-50 dark:bg-red-950/50 dark:text-red-300 rounded-lg p-3"></p>
+
+    <div class="mt-6 text-center text-sm text-stone-500">
+      Pas de fichier sous la main ?
+      <button id="demoSvgBtn" class="underline decoration-orange-400 underline-offset-2 hover:text-orange-600">Essayer un SVG d'exemple</button>
+      ou
+      <button id="demoImgBtn" class="underline decoration-orange-400 underline-offset-2 hover:text-orange-600">une image d'exemple</button>
+    </div>
+
+    <div class="mt-16 grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto text-sm">
+      <div class="p-4 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+        <div class="font-semibold">1. Déposez</div>
+        <p class="mt-1 text-stone-600 dark:text-stone-400">Un SVG d'Inkscape, Illustrator ou Affinity, ou une photo à graver.</p>
+      </div>
+      <div class="p-4 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+        <div class="font-semibold">2. Lisez le rapport</div>
+        <p class="mt-1 text-stone-600 dark:text-stone-400">Bloquant, à vérifier ou OK, avec les problèmes surlignés sur l'aperçu.</p>
+      </div>
+      <div class="p-4 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+        <div class="font-semibold">3. Corrigez et exportez</div>
+        <p class="mt-1 text-stone-600 dark:text-stone-400">Un clic par problème, annulable, puis un fichier propre en mm.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Vue SVG ===== -->
+  <section id="svgView" class="hidden py-6">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <h2 id="svgName" class="font-semibold truncate max-w-full"></h2>
+      <span id="svgMeta" class="text-sm text-stone-500"></span>
+      <div class="flex-1"></div>
+      <button class="newFileBtn text-sm px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Nouveau fichier</button>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_480px] gap-6 items-start">
+      <div class="min-w-0 lg:sticky lg:top-20">
+        <div class="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 text-xs text-stone-500 border-b border-stone-200 dark:border-stone-800">
+            <span class="inline-flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-red-500"></i>Bloquant</span>
+            <span class="inline-flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-sm bg-amber-500"></i>À vérifier</span>
+            <span class="flex-1"></span>
+            <span class="flex items-center gap-1">
+              <button id="pzOut" class="tap w-8 h-8 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800" title="Dézoomer" aria-label="Dézoomer">−</button>
+              <span id="pzLabel" class="w-12 text-center tabular-nums">100 %</span>
+              <button id="pzIn" class="tap w-8 h-8 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800" title="Zoomer" aria-label="Zoomer">+</button>
+              <button id="pzFit" class="tap px-2.5 h-8 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Ajuster</button>
+            </span>
+            <span id="focusHint" class="hidden xl:inline">Cliquez sur un problème pour le repérer</span>
+          </div>
+          <div id="svgPreview" class="preview-canvas pan-view p-4 sm:p-6 overflow-hidden" title="Molette : zoom · glisser : déplacer · double-clic : ajuster"></div>
+        </div>
+      </div>
+
+      <div class="min-w-0 space-y-4">
+        <div class="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4">
+          <div class="flex items-center gap-2 flex-wrap">
+            <div id="svgSummary" class="flex flex-wrap gap-2 text-sm"></div>
+            <div class="flex-1"></div>
+            <button id="undoBtn" class="tap p-2 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-30" title="Annuler" aria-label="Annuler"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+            <button id="redoBtn" class="tap p-2 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-30" title="Rétablir" aria-label="Rétablir"><svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+          </div>
+          <label class="mt-3 flex items-center gap-2 text-sm">
+            <span class="text-stone-500 whitespace-nowrap">Mode</span>
+            <select id="usageSel" class="tap flex-1 min-w-0 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-2 py-1.5">
+              <option value="auto">Auto</option>
+              <option value="coupe">Découpe</option>
+              <option value="gravure">Gravure</option>
+              <option value="mixte">Découpe + gravure</option>
+            </select>
+          </label>
+          <button id="fixAllBtn" class="tap mt-3 w-full px-4 py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-stone-300 dark:disabled:bg-stone-700 text-white font-medium text-sm">Tout corriger</button>
+          <p id="fixAllNote" class="mt-1.5 text-xs text-stone-500"></p>
+          <div class="mt-3 pt-3 border-t border-stone-200 dark:border-stone-800">
+            <div class="grid grid-cols-[1fr_auto] gap-2">
+              <button id="svgExportBtn" class="tap px-4 py-2.5 rounded-lg bg-stone-900 hover:bg-stone-700 text-white dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white font-medium text-sm">Télécharger le SVG corrigé</button>
+              <button id="dxfExportBtn" class="tap px-4 py-2.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg font-medium text-sm" title="DXF en mm, un calque par couleur">DXF</button>
+            </div>
+            <p id="svgExportNote" class="mt-2 text-xs text-stone-500"></p>
+            <p class="credits mt-1 text-xs text-stone-500"></p>
+          </div>
+        </div>
+
+        <div id="svgIssues" class="space-y-2"></div>
+
+        <div id="opsBox" class="hidden rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-2 py-4 text-sm"></div>
+
+        <details id="logBox" class="fold rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4">
+          <summary class="cursor-pointer font-semibold text-sm">Journal des modifications <span id="logCount" class="font-normal text-stone-500"></span></summary>
+          <div id="logCtrl" class="mt-2 flex flex-wrap gap-2"></div>
+          <ol id="svgLog" class="mt-2 text-sm text-stone-600 dark:text-stone-400"></ol>
+        </details>
+
+        <details id="resizeBox" class="fold rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4">
+          <summary class="cursor-pointer font-semibold text-sm">Redimensionner</summary>
+          <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
+            <label class="block">Largeur (mm)<input id="rsW" type="number" step="0.1" min="0.1" class="field"></label>
+            <label class="block">Hauteur (mm)<input id="rsH" type="number" step="0.1" min="0.1" class="field"></label>
+            <label class="block">Échelle (%)<input id="rsP" type="number" step="1" min="1" value="100" class="field"></label>
+          </div>
+          <p class="mt-2 text-xs text-stone-500">Proportions verrouillées.</p>
+          <button id="rsApply" class="tap mt-3 text-sm px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Appliquer</button>
+        </details>
+
+        <details id="engraveBox" class="fold hidden rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 text-sm">
+          <summary class="cursor-pointer font-semibold">Gravure : PNG tramé</summary>
+          <div class="mt-3 space-y-3">
+          <p class="text-xs text-stone-500">Transforme les éléments à graver (aplats, dégradés, textes, images) en image 1 bit à la résolution du laser, avec les DPI inscrits dans le fichier.</p>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="block">Résolution
+              <select id="eDpi" class="field"><option value="254">254 DPI (0,1 mm)</option><option value="318" selected>318 DPI (0,08 mm)</option><option value="508">508 DPI (0,05 mm)</option></select>
+            </label>
+            <label class="block">Tramage
+              <select id="eAlgo" class="field"><option value="threshold">Seuil simple</option><option value="floyd" selected>Floyd-Steinberg</option><option value="jarvis">Jarvis</option><option value="stucki">Stucki</option><option value="atkinson">Atkinson</option><option value="bayer">Ordonné (Bayer)</option></select>
+            </label>
+          </div>
+          <label class="flex items-center gap-2"><input id="eOnly" type="checkbox" checked class="accent-orange-500"> Seulement les couleurs associées à la gravure</label>
+          <label class="flex items-center gap-2"><input id="eInvert" type="checkbox" class="accent-orange-500"> Inverser (ardoise, alu anodisé noir)</label>
+          <p id="eInfo" class="text-xs text-stone-500"></p>
+          <div id="ePreviewBox" class="relative rounded-lg bg-white border border-stone-200 dark:border-stone-700 h-56 p-2 overflow-hidden cursor-zoom-in" title="Agrandir">
+            <div class="relative w-full h-full">
+              <canvas id="ePreview" class="absolute inset-0 w-full h-full object-contain"></canvas>
+              <img id="eOutline" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none">
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-600 dark:text-stone-400">
+            <span class="inline-flex items-center gap-1.5"><i class="inline-block w-3 h-3 bg-black rounded-sm"></i>gravé</span>
+            <span id="eLegendGuide" class="inline-flex items-center gap-1.5"><i class="inline-block w-5 border-t-2 border-dashed border-slate-400"></i>pas gravé (repère, absent du PNG)</span>
+            <label id="eGuidesRow" class="inline-flex items-center gap-1.5 ml-auto"><input id="eGuides" type="checkbox" checked class="accent-orange-500"> Afficher les repères</label>
+          </div>
+          <div class="flex items-center gap-2">
+            <p id="eStats" class="flex-1 text-xs text-stone-500"></p>
+            <button id="eEnlarge" class="tap text-xs px-2.5 py-1.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Agrandir</button>
+          </div>
+          <button id="eExportBtn" class="tap w-full px-4 py-2.5 rounded-lg bg-stone-900 hover:bg-stone-700 text-white dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white font-medium">Télécharger le PNG de gravure</button>
+          <p class="credits-png text-xs text-center text-stone-500"></p>
+          </div>
+        </details>
+
+        <div class="promo space-y-3"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Vue lot ===== -->
+  <section id="batchView" class="hidden py-6">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <h2 class="font-semibold">Traitement par lot</h2>
+      <span id="batchMeta" class="text-sm text-stone-500"></span>
+      <div class="flex-1"></div>
+      <button class="newFileBtn text-sm px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Autres fichiers</button>
+    </div>
+    <div class="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 text-sm">
+      <div class="flex flex-wrap items-center gap-4">
+        <label class="flex items-center gap-2"><input id="batchFills" type="checkbox" class="accent-orange-500"> Retirer aussi les remplissages des formes à couper</label>
+        <div class="flex-1"></div>
+        <button id="batchZipBtn" class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-medium">Télécharger tout (ZIP)</button>
+      </div>
+      <p class="mt-2 text-xs text-stone-500">Chaque fichier est analysé puis corrigé automatiquement (échelle en mm, doublons, tracés presque fermés, couleurs, traits fins, nettoyage). Ce qui demande une décision reste signalé.</p>
+      <div id="batchProgress" class="mt-3 h-1.5 rounded bg-stone-200 dark:bg-stone-800 overflow-hidden"><div class="h-full bg-orange-500 transition-all" style="width:0"></div></div>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="text-xs text-stone-500 border-b border-stone-200 dark:border-stone-800">
+            <tr><th class="py-2 pr-3 font-medium">Fichier</th><th class="py-2 pr-3 font-medium">Avant</th><th class="py-2 pr-3 font-medium">Après</th><th class="py-2 pr-3 font-medium">Reste à voir</th><th></th></tr>
+          </thead>
+          <tbody id="batchRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Vue image ===== -->
+  <section id="imgView" class="hidden py-6">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <h2 id="imgName" class="font-semibold truncate max-w-full"></h2>
+      <span id="imgMeta" class="text-sm text-stone-500"></span>
+      <div class="flex-1"></div>
+      <button class="newFileBtn text-sm px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Nouveau fichier</button>
+    </div>
+    <div id="imgTabs" class="hidden flex gap-1 mb-4 p-1 rounded-xl bg-stone-200/70 dark:bg-stone-800 w-fit text-sm" role="tablist">
+      <button id="tabGrav" class="tab active" role="tab">Gravure (tramage)</button>
+      <button id="tabVec" class="tab" role="tab">Vectorisation (SVG)</button>
+    </div>
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start">
+      <div class="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden lg:sticky lg:top-20">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-xs text-stone-500 border-b border-stone-200 dark:border-stone-800">
+          <span id="gravZoom" class="flex items-center gap-3">
+            <span>Zoom</span>
+            <input id="zoom" type="range" min="0" max="100" value="0" class="w-40 accent-orange-500">
+            <span id="zoomLabel">Ajusté</span>
+          </span>
+          <span id="vecZoom" class="hidden flex items-center gap-2">
+            <button id="vzOut" class="w-7 h-7 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-sm" title="Dézoomer" aria-label="Dézoomer">−</button>
+            <span id="vzLabel" class="w-12 text-center tabular-nums">100 %</span>
+            <button id="vzIn" class="w-7 h-7 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-sm" title="Zoomer" aria-label="Zoomer">+</button>
+            <button id="vzFit" class="px-2 h-7 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Ajuster</button>
+            <label class="flex items-center gap-1.5 ml-2"><input id="vzUnder" type="checkbox" class="accent-orange-500"> Image sous les contours</label>
+          </span>
+          <span class="flex-1"></span>
+          <span id="vecHint" class="hidden">Molette : zoom · glisser : déplacer · double-clic : ajuster</span>
+          <span id="gravHint">Glisser pour se déplacer</span>
+          <span id="imgBusy" class="hidden">Calcul…</span>
+        </div>
+        <div class="grid grid-cols-2 gap-px bg-stone-200 dark:bg-stone-800">
+          <div class="bg-white dark:bg-stone-900">
+            <div class="px-3 py-1.5 text-xs font-medium text-stone-500">Avant</div>
+            <div id="beforeWrap" class="img-wrap"><canvas id="beforeCanvas"></canvas></div>
+            <div id="beforeVec" class="pan-view hidden bg-white h-[min(70vh,520px)] overflow-hidden"></div>
+          </div>
+          <div id="afterCol" class="bg-white dark:bg-stone-900">
+            <div class="px-3 py-1.5 text-xs font-medium text-stone-500">Après (1 bit, 1 pixel = 1 point laser)</div>
+            <div id="afterWrap" class="img-wrap"><canvas id="afterCanvas"></canvas></div>
+          </div>
+          <div id="vecCol" class="hidden bg-white dark:bg-stone-900">
+            <div class="px-3 py-1.5 text-xs font-medium text-stone-500">Vecteur (contours)</div>
+            <div id="vecPreview" class="pan-view bg-white h-[min(70vh,520px)] overflow-hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div id="imgIssues" class="space-y-2"></div>
+
+        <div id="prepCard" class="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 space-y-3 text-sm">
+          <div id="prepTitle" class="font-semibold">Réglages de l’image</div>
+          <p id="prepNote" class="hidden text-xs text-stone-500">Ils servent : la largeur fixe la taille du SVG, et luminosité, contraste, gamma ou inversion changent ce qui est détecté comme forme.</p>
+          <div class="grid grid-cols-2 gap-2">
+            <label id="dpiRow" class="block">Résolution
+              <select id="pDpi" class="field">
+                <option value="254">254 DPI (0,1 mm)</option>
+                <option value="318" selected>318 DPI (0,08 mm)</option>
+                <option value="508">508 DPI (0,05 mm)</option>
+              </select>
+            </label>
+            <label class="block">Largeur (mm)<input id="pWidth" type="number" min="1" step="1" class="field"></label>
+          </div>
+          <label id="algoRow" class="block">Tramage
+            <select id="pAlgo" class="field">
+              <option value="threshold">Seuil simple</option>
+              <option value="floyd" selected>Floyd-Steinberg</option>
+              <option value="jarvis">Jarvis</option>
+              <option value="stucki">Stucki</option>
+              <option value="atkinson">Atkinson</option>
+              <option value="bayer">Ordonné (Bayer)</option>
+            </select>
+          </label>
+          <label class="block"><span class="flex justify-between">Luminosité <output id="oBright">0</output></span><input id="pBright" type="range" min="-100" max="100" value="0" class="w-full accent-orange-500"></label>
+          <label class="block"><span class="flex justify-between">Contraste <output id="oContrast">0</output></span><input id="pContrast" type="range" min="-100" max="100" value="0" class="w-full accent-orange-500"></label>
+          <label class="block"><span class="flex justify-between">Gamma <output id="oGamma">1,0</output></span><input id="pGamma" type="range" min="0.2" max="3" step="0.05" value="1" class="w-full accent-orange-500"></label>
+          <label id="thresholdRow" class="hidden"><span class="flex justify-between">Seuil <output id="oThreshold">128</output></span><input id="pThreshold" type="range" min="1" max="254" value="128" class="w-full accent-orange-500"></label>
+          <label class="flex items-center gap-2"><input id="pInvert" type="checkbox" class="accent-orange-500"> Inverser (ardoise, alu anodisé noir)</label>
+          <button id="imgResetBtn" class="text-xs underline text-stone-500">Réinitialiser les réglages</button>
+        </div>
+
+        <div id="vecBox" class="hidden rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 text-sm">
+          <div class="font-semibold">Vectoriser <span class="font-normal text-xs text-stone-500">→ SVG en mm pour la découpe ou la gravure</span></div>
+          <p class="mt-2 text-xs text-stone-500">Transforme les formes de l'image en contours fermés, puis ouvre le SVG dans le vérificateur. Idéal pour un logo, une silhouette ou un dessin au trait. Les réglages de luminosité, contraste, gamma et inversion s'appliquent aussi.</p>
+          <div class="mt-3 space-y-3">
+            <label class="block">Détecter
+              <select id="vDetect" class="field">
+                <option value="all" selected>Toutes les formes (contours des zones claires + zones sombres)</option>
+                <option value="dark">Zones sombres seulement</option>
+                <option value="color">Par couleurs (un calque par couleur)</option>
+              </select>
+            </label>
+            <div id="vColorsRow" class="hidden space-y-2">
+              <label class="block"><span class="flex justify-between">Nombre de couleurs <output id="oVColors">4</output></span><input id="vColors" type="range" min="2" max="8" value="4" class="w-full accent-orange-500"></label>
+              <label class="flex items-center gap-2"><input id="vSkipBg" type="checkbox" checked class="accent-orange-500"> Ignorer la couleur du fond</label>
+              <p class="text-xs text-stone-500">Chaque couleur devient un calque : dans LightBurn, vous lui donnez sa propre puissance et sa vitesse. Idéal en gravure (aplats). En découpe, les bords communs entre deux couleurs seraient coupés deux fois.</p>
+            </div>
+            <label id="vMarginRow" class="block"><span class="flex justify-between">Sensibilité aux zones claires <output id="oVMargin">12</output></span><input id="vMargin" type="range" min="3" max="80" value="12" class="w-full accent-orange-500"></label>
+            <label id="vThresholdRow" class="block"><span class="flex justify-between">Seuil des zones sombres <output id="oVThreshold">128</output></span><input id="vThreshold" type="range" min="1" max="254" value="128" class="w-full accent-orange-500"></label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="block">Lissage
+                <select id="vSmooth" class="field">
+                  <option value="0.3">Fin (fidèle)</option>
+                  <option value="0.6" selected>Moyen</option>
+                  <option value="1.3">Fort (très lisse)</option>
+                  <option value="0">Aucun (points bruts)</option>
+                </select>
+              </label>
+              <label class="block">Ignorer sous (mm²)<input id="vMinArea" type="number" min="0" step="0.1" value="0.5" class="field"></label>
+            </div>
+            <label class="block">Angles
+              <select id="vCorners" class="field">
+                <option value="0.9">Vifs (logos, lettres, formes géométriques)</option>
+                <option value="0.72" selected>Normaux</option>
+                <option value="0.3">Arrondis (dessins à main levée)</option>
+              </select>
+            </label>
+            <label class="block">Usage
+              <select id="vMode" class="field">
+                <option value="coupe">Découpe : contours rouges, trait fin</option>
+                <option value="gravure">Gravure : aplats noirs</option>
+              </select>
+            </label>
+          </div>
+          <p id="vecStats" class="mt-3 text-xs text-stone-500"></p>
+          <div id="vecPalette" class="hidden mt-2 flex flex-wrap gap-1.5"></div>
+          <div class="mt-3 grid gap-2">
+            <button id="vecBtn" class="w-full px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-medium">Vérifier et corriger le SVG →</button>
+            <button id="vecSaveBtn" class="w-full px-4 py-2 rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-50 font-medium">Télécharger le SVG tel quel</button>
+          </div>
+          <p class="credits-svg mt-2 text-xs text-center text-stone-500"></p>
+        </div>
+
+        <div id="imgExportCard" class="rounded-2xl border-2 border-orange-400/60 bg-white dark:bg-stone-900 p-4">
+          <div class="font-semibold text-sm">Exporter</div>
+          <p id="imgExportNote" class="mt-1 text-xs text-stone-500"></p>
+          <button id="imgExportBtn" class="mt-3 w-full px-4 py-2 rounded-lg bg-stone-900 hover:bg-stone-700 text-white dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white font-medium text-sm">Télécharger le PNG tramé</button>
+          <p class="credits mt-2 text-xs text-center text-stone-500"></p>
+        </div>
+
+        <div class="promo space-y-3"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="max-w-7xl mx-auto px-4 py-10 text-xs text-stone-500 flex flex-wrap gap-x-4 gap-y-1">
+  <span>KleanPath — prototype V1</span>
+  <span>Traitement 100 % dans votre navigateur : aucun fichier n'est envoyé.</span>
+  <a href="legal.html#mentions" class="underline">Mentions légales</a>
+  <a href="legal.html#cgu" class="underline">Conditions d’utilisation</a>
+  <a href="legal.html#confidentialite" class="underline">Confidentialité</a>
+</footer>
+
+<!-- ===== Réglages machine ===== -->
+<dialog id="settingsDlg" class="dlg">
+  <form method="dialog" class="p-5 w-[min(92vw,420px)] space-y-3 text-sm">
+    <div class="flex items-center"><h3 class="font-semibold text-base flex-1">Réglages machine</h3><button value="cancel" class="p-1" aria-label="Fermer">✕</button></div>
+    <p class="text-xs text-stone-500">Facultatif. Mémorisés sur cet ordinateur.</p>
+    <label class="block">Machine
+      <select id="sProfile" class="field"></select>
+      <span class="text-xs text-stone-500">Zones de travail indicatives : vérifiez la notice de votre machine.</span>
+    </label>
+    <div class="grid grid-cols-2 gap-2">
+      <label class="block">Plateau, largeur (mm)<input id="sBedW" type="number" min="1" class="field"></label>
+      <label class="block">Plateau, hauteur (mm)<input id="sBedH" type="number" min="1" class="field"></label>
+    </div>
+    <label class="block">Largeur de coupe / kerf (mm)<input id="sKerf" type="number" min="0" step="0.01" class="field"></label>
+    <label class="block">Logiciel d'origine du fichier
+      <select id="sOrigin" class="field">
+        <option value="auto">Détection automatique</option>
+        <option value="inkscape">Inkscape (96 DPI)</option>
+        <option value="illustrator">Illustrator (72 DPI)</option>
+        <option value="affinity">Affinity (72 DPI)</option>
+        <option value="autre">Autre (96 DPI)</option>
+      </select>
+    </label>
+    <label class="block">Fermeture auto des tracés jusqu'à (mm)<input id="sCloseTol" type="number" min="0.01" step="0.01" class="field"></label>
+    <div class="flex justify-end gap-2 pt-2">
+      <button value="cancel" class="px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700">Annuler</button>
+      <button id="settingsSave" value="save" class="px-3 py-1.5 rounded-md bg-orange-500 text-white">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Aperçu de la gravure en grand ===== -->
+<dialog id="engDlg" class="dlg">
+  <form method="dialog" class="p-4 w-[min(94vw,1200px)] space-y-2 text-sm">
+    <div class="flex items-center"><h3 class="font-semibold flex-1">Aperçu de la gravure</h3><span class="text-xs text-stone-500 mr-3 inline-flex items-center gap-3"><span class="inline-flex items-center gap-1.5"><i class="inline-block w-3 h-3 bg-black rounded-sm"></i>gravé</span><span class="inline-flex items-center gap-1.5"><i class="inline-block w-5 border-t-2 border-dashed border-slate-400"></i>pas gravé (repère)</span></span><button value="cancel" class="p-1" aria-label="Fermer">✕</button></div>
+    <div class="relative bg-white rounded-lg h-[78vh]">
+      <canvas id="eBig" class="absolute inset-0 w-full h-full object-contain"></canvas>
+      <img id="eBigOutline" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none">
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Confirmation ===== -->
+<dialog id="confirmDlg" class="dlg">
+  <form method="dialog" class="p-5 w-[min(92vw,420px)] space-y-4 text-sm">
+    <p id="confirmMsg" class="whitespace-pre-line leading-relaxed"></p>
+    <div class="flex justify-end gap-2">
+      <button value="cancel" class="px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">Annuler</button>
+      <button id="confirmOk" value="ok" class="px-3 py-1.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium">Continuer</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== Choix du mode au dépôt ===== -->
+<dialog id="modeDlg" class="dlg">
+  <form method="dialog" class="p-5 w-[min(92vw,460px)] space-y-3 text-sm">
+    <div class="flex items-center"><h3 class="font-semibold text-base flex-1">Que voulez-vous faire ?</h3><button value="cancel" class="p-1" aria-label="Fermer">✕</button></div>
+    <p id="modeFile" class="text-xs text-stone-500 truncate"></p>
+    <div id="modeChoices" class="grid gap-2"></div>
+    <p class="text-xs text-stone-500">Vous pourrez changer de mode ensuite.</p>
+  </form>
+</dialog>
+
+<!-- ===== Pro / licence ===== -->
+<dialog id="proDlg" class="dlg">
+  <form method="dialog" class="p-5 w-[min(92vw,440px)] space-y-4 text-sm">
+    <div class="flex items-center"><h3 id="proTitle" class="font-semibold text-base flex-1">KleanPath Pro</h3><button value="cancel" class="p-1" aria-label="Fermer">✕</button></div>
+    <p id="proReason" class="hidden p-3 rounded-lg bg-amber-50 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200"></p>
+    <div id="proOffer">
+      <ul class="space-y-1.5">
+        <li>✓ Corrections et exports SVG illimités</li>
+        <li>✓ Exports PNG tramés illimités</li>
+        <li>✓ Sans encart, sans abonnement, sans filigrane</li>
+        <li>✓ Toujours 100 % local</li>
+      </ul>
+      <button id="buyBtn" type="button" class="mt-4 w-full px-4 py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold"></button>
+      <p class="mt-1 text-xs text-center text-stone-500">Paiement unique, accès à vie. La clé arrive par e-mail.</p>
+    </div>
+    <div class="border-t border-stone-200 dark:border-stone-800 pt-4">
+      <label class="block font-medium">Vous avez une clé ?
+        <input id="keyInput" type="text" autocomplete="off" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" class="field font-mono">
+      </label>
+      <p id="keyMsg" class="mt-2 text-xs"></p>
+      <div class="flex gap-2 mt-2">
+        <button id="activateBtn" type="button" class="px-3 py-1.5 rounded-md bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900">Activer</button>
+        <button id="deactivateBtn" type="button" class="hidden px-3 py-1.5 rounded-md border border-stone-300 dark:border-stone-700">Retirer la licence de cet ordinateur</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-lg bg-stone-900 text-white dark:bg-white dark:text-stone-900 text-sm shadow-lg"></div>
+
+<script src="js/samples.js"></script>
+<script src="js/licence.js"></script>
+<script src="js/svg.js"></script>
+<script src="js/image.js"></script>
+<script src="js/vectorize.js"></script>
+<script src="js/dxf.js"></script>
+<script src="js/batch.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
